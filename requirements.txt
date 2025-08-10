@@ -1,3 +1,5 @@
 flask
 psutil
 requests
+flask-socketio
+eventlet
