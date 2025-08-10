@@ -5,14 +5,29 @@ import json
 import os
 import requests
 
+
 from urllib.parse import urlparse
 # === NOVO: Socket.IO ===
 from flask_socketio import SocketIO, emit
+from datetime import timedelta
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required
+from dotenv import load_dotenv
+
+load_dotenv()  # carrega .env
+
+
 
 app = Flask(__name__)
 
 # cors_allowed_origins="*" simplifica no dev local; em produção, restrinja
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET", "dev-secret")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=int(os.environ.get("JWT_EXPIRES", "86400")))
+jwt = JWTManager(app)
+
+ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
+ADMIN_PASS = os.environ.get("ADMIN_PASS", "admin")
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "services.json")
 
@@ -36,6 +51,17 @@ def load_config():
 def save_config(services):
     with open(CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(services, f, ensure_ascii=False, indent=2)
+        
+@app.route("/auth/login", methods=["POST"])
+def login():
+    data = request.get_json(force=True, silent=True) or {}
+    user = (data.get("username") or "").strip()
+    pwd  = (data.get("password") or "").strip()
+    if user == ADMIN_USER and pwd == ADMIN_PASS:
+        token = create_access_token(identity=user)
+        return jsonify({"access_token": token})
+    return jsonify({"error": "credenciais inválidas"}), 401
+        
 
 @app.route("/health")
 def health():
@@ -120,6 +146,11 @@ def config():
     if request.method == "GET":
         return jsonify(services)
 
+    # ✅ a linha que faltava: delega POST/DELETE para a função protegida
+    return _config_write_methods(services)
+
+@jwt_required()
+def _config_write_methods(services):
     if request.method == "POST":
         data = request.get_json(force=True, silent=True) or {}
         name = (data.get("name") or "").strip()
@@ -131,8 +162,6 @@ def config():
             return jsonify({"error": "Já existe um serviço com esse nome."}), 400
         services.append({"name": name, "type": typ, "url": url})
         save_config(services)
-
-        # NOVO: emite atualização imediata para todos os clientes conectados
         socketio.emit("services", collect_services_snapshot())
         return jsonify({"message": "Serviço adicionado.", "service": {"name": name, "type": typ, "url": url}}), 201
 
@@ -145,10 +174,9 @@ def config():
         if len(new_services) == len(services):
             return jsonify({"error": "Serviço não encontrado."}), 404
         save_config(new_services)
-
-        # NOVO: emite atualização imediata após remoção
         socketio.emit("services", collect_services_snapshot())
         return jsonify({"message": "Serviço removido.", "name": data.get("name")})
+    
 
 # ============ WebSocket (Socket.IO) ============
 
@@ -169,19 +197,18 @@ def ws_refresh_services():
 
 # Tarefa em background para emitir métricas/serviços periodicamente
 def background_broadcast():
-    # Loop infinito com pausas cooperativas (eventlet)
     while True:
-        # Métricas
+        # métricas frequentes
         cpu = psutil.cpu_percent(interval=0.1)
         mem = psutil.virtual_memory().percent
         ts = int(time.time())
         socketio.emit("metrics", {"timestamp": ts, "cpu": cpu, "memory": mem})
 
-        # Serviços (pode ser menos frequente; aqui mantemos junto p/ simplicidade)
+        # serviços com frequência menor
         socketio.emit("services", collect_services_snapshot())
 
-        # Pausa 3s entre emissões
-        socketio.sleep(3)
+        socketio.sleep(10)  # 10s para serviços (ajuste como preferir)
+
 
 # Inicia a tarefa em background assim que o servidor sobe
 @socketio.on("connect")

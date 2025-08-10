@@ -1,3 +1,4 @@
+
 const perfCtx = document.getElementById('perfChart').getContext('2d');
 const cpuEl = document.getElementById('cpu');
 const memEl = document.getElementById('mem');
@@ -8,9 +9,50 @@ const refreshBtn = document.getElementById('refreshBtn');
 const nameInput = document.getElementById('name');
 const urlInput = document.getElementById('url');
 
+
 const labels = [];
 const cpuData = [];
 const memData = [];
+const userInput = document.getElementById('user');
+const passInput = document.getElementById('pass');
+const loginBtn  = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const authState = document.getElementById('authState');
+
+function setAuthState() {
+  const token = localStorage.getItem('jwt');
+  authState.textContent = token ? 'Logado' : 'Deslogado';
+}
+setAuthState();
+
+async function login() {
+  const username = (userInput.value || '').trim();
+  const password = (passInput.value || '').trim();
+  if (!username || !password) { alert('Informe usuário e senha'); return; }
+  const res = await fetch('/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  if (res.ok) {
+    const { access_token } = await res.json();
+    localStorage.setItem('jwt', access_token);
+    setAuthState();
+    alert('Login ok!');
+  } else {
+    alert('Credenciais inválidas');
+  }
+}
+
+function logout() {
+  localStorage.removeItem('jwt');
+  setAuthState();
+  alert('Saiu!');
+}
+
+loginBtn.addEventListener('click', login);
+logoutBtn.addEventListener('click', logout);
+
 
 const chart = new Chart(perfCtx, {
   type: 'line',
@@ -84,34 +126,45 @@ async function addService() {
   const name = nameInput.value.trim();
   const url = urlInput.value.trim();
   if (!name || !url) { alert('Preencha nome e URL.'); return; }
+  const token = localStorage.getItem('jwt');
+  if (!token) { alert('Faça login para adicionar.'); return; }
+
   try {
     await fetchJSON('/config', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ name, type: 'http', url })
     });
     nameInput.value = ''; urlInput.value = '';
-    // solicita atualização imediata ao servidor (opcional)
     socket.emit('refresh_services');
   } catch (e) {
-    alert('Falha ao adicionar serviço. Verifique se o nome já existe e a URL é válida.');
+    alert('Falha ao adicionar serviço (verifique login/token).');
   }
 }
 
 async function removeService(name) {
   if (!confirm(`Remover serviço "${name}"?`)) return;
+  const token = localStorage.getItem('jwt');
+  if (!token) { alert('Faça login para remover.'); return; }
+
   try {
     await fetchJSON('/config', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ name })
     });
-    // solicita atualização imediata ao servidor (opcional)
     socket.emit('refresh_services');
   } catch (e) {
-    alert('Falha ao remover serviço.');
+    alert('Falha ao remover serviço (verifique login/token).');
   }
 }
+
 
 window.removeService = removeService;
 addBtn.addEventListener('click', addService);

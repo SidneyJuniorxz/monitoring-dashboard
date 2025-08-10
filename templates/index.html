@@ -75,45 +75,50 @@
 
   <!-- <section> agrupa o conteúdo principal. A classe 'grid' ativa nosso layout de 12 colunas. -->
   <section class="grid">
-
-    <!-- CARD KPI: CPU -->
-    <!-- 'grid-column: span 3' faz este card ocupar 3 das 12 colunas da grade. -->
-    <div class="card" style="grid-column: span 3;">
-      <div class="kpi">
-        <!-- O 'id' é um identificador único. O JavaScript usará 'id="cpu"' para encontrar este elemento e atualizar seu valor. -->
-        <h2 id="cpu">0%</h2>
+  
+  <!-- 👇 MOVA ESTE CARD DE LOGIN PARA CÁ -->
+  <div class="card" style="grid-column: span 12;">
+    <h3 style="margin-top:0;">Login (admin)</h3>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
+      <div style="display:flex; flex-direction:column;">
+        <label for="user">Usuário</label>
+        <input id="user" placeholder="admin" />
       </div>
-      <div class="muted">Uso de CPU</div>
-    </div>
-
-    <!-- CARD KPI: Memória -->
-    <!-- Este card também ocupa 3 colunas. 3 + 3 = 6. -->
-    <div class="card" style="grid-column: span 3;">
-      <div class="kpi">
-        <!-- O JS usará 'id="mem"' para atualizar o valor da memória. -->
-        <h2 id="mem">0%</h2>
+      <div style="display:flex; flex-direction:column;">
+        <label for="pass">Senha</label>
+        <input id="pass" type="password" placeholder="••••••" />
       </div>
-      <div class="muted">Uso de Memória</div>
+      <button id="loginBtn">Entrar</button>
+      <button id="logoutBtn">Sair</button>
+      <div class="muted" id="authState">Deslogado</div>
     </div>
+  </div>
 
-    <!-- CARD: Gráfico de séries temporais (CPU/Memória) -->
-    <!-- Este card ocupa as 6 colunas restantes da primeira linha (3+3+6=12). -->
-    <div class="card" style="grid-column: span 6;">
-      <!-- A tag <canvas> cria uma área de desenho. Chart.js usará o 'id="perfChart"' para desenhar o gráfico aqui. -->
-      <canvas id="perfChart" height="120"></canvas>
-      <div class="muted" style="margin-top:8px;">Séries temporais CPU/Memória</div>
-    </div>
+  <!-- CARD KPI: CPU -->
+  <div class="card" style="grid-column: span 3;">
+    <div class="kpi"><h2 id="cpu">0%</h2></div>
+    <div class="muted">Uso de CPU</div>
+  </div>
 
-    <!-- CARD: Lista de serviços monitorados -->
-    <!-- Este card ocupa todas as 12 colunas da grade, ficando em uma nova linha. -->
-    <div class="card" style="grid-column: span 12;">
-      <h3 style="margin-top:0;">Serviços</h3>
-      <!-- Este 'div' é um container. O JS irá preenchê-lo dinamicamente com os cards de cada serviço. -->
-      <div id="services" class="muted">Carregando...</div>
-    </div>
+  <!-- CARD KPI: Memória -->
+  <div class="card" style="grid-column: span 3;">
+    <div class="kpi"><h2 id="mem">0%</h2></div>
+    <div class="muted">Uso de Memória</div>
+  </div>
 
-    <!-- CARD: Formulário para adicionar serviços HTTP -->
-    <div class="card" style="grid-column: span 12;">
+  <!-- Gráfico -->
+  <div class="card" style="grid-column: span 6;">
+    <canvas id="perfChart" height="120"></canvas>
+    <div class="muted" style="margin-top:8px;">Séries temporais CPU/Memória</div>
+  </div>
+
+  <!-- Serviços -->
+  <div class="card" style="grid-column: span 12;">
+    <h3 style="margin-top:0;">Serviços</h3>
+    <div id="services" class="muted">Carregando...</div>
+  </div>
+
+  <div class="card" style="grid-column: span 12;">
       <h3 style="margin-top:0;">Adicionar Serviço (HTTP)</h3>
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
         <div style="display:flex; flex-direction:column;">
@@ -132,7 +137,8 @@
 
       <!-- dica para o usuário (texto informativo) -->
       <div class="muted" style="margin-top:8px;">Dica: teste com <code>https://httpstat.us/200</code> (UP) ou <code>https://httpstat.us/503</code> (DOWN).</div>
-    </div>
+  </div>
+ 
   </section>
 
   <footer>

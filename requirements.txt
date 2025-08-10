@@ -3,3 +3,5 @@ psutil
 requests
 flask-socketio
 eventlet
+flask-jwt-extended
+python-dotenv
