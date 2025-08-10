@@ -1,0 +1,146 @@
+<!doctype html> <!-- Declaração do tipo de documento. Essencial para o navegador renderizar a página corretamente em modo padrão. -->
+<html lang="pt-br"> <!-- Tag raiz do documento. 'lang' ajuda na acessibilidade e SEO, indicando o idioma principal. -->
+<head>
+  <!-- A seção <head> contém metadados sobre a página, que não são exibidos diretamente. -->
+  <meta charset="utf-8" /> <!-- Define a codificação de caracteres para UTF-8, garantindo que acentos e símbolos funcionem. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- A meta 'viewport' é crucial para o design responsivo, fazendo o site se adaptar a telas de celular. -->
+
+  <title>Dashboard de Monitoramento</title> <!-- título que aparece na aba do navegador -->
+
+  <style>
+    /* ======= ESTILOS BÁSICOS (CSS) ======= */
+    /* O CSS define a aparência visual dos elementos HTML. */
+    /* Colocá-lo aqui é prático para um projeto pequeno. Em projetos maiores, ele iria para um arquivo .css separado. */
+    /* ':root' é um seletor que representa a raiz do documento (a tag <html>). É um bom lugar para definir variáveis globais, como a fonte. */
+    :root { font-family: Inter, system-ui, Arial, sans-serif; }
+    /* Estilos para o corpo da página: remove margem padrão do navegador e define um tema escuro. */
+    body { margin: 0; background:#0b1020; color:#e6e9f2; }
+    /* 'display: flex' é um modelo de layout poderoso para alinhar itens. Aqui, usamos para o cabeçalho. */
+    /* 'justify-content: space-between' empurra os itens filhos para os extremos (título para a esquerda, link para a direita). */
+    header { padding: 24px; display:flex; justify-content:space-between; align-items:center; }
+
+    /* 'display: grid' é o sistema de layout principal da página, organizando os cards em uma grade. */
+    /* 'grid-template-columns: repeat(12, 1fr)' cria uma grade de 12 colunas de largura igual. Padrão comum em design web. */
+    /* 'gap' define o espaçamento entre os cards. */
+    .grid { display:grid; gap:16px; grid-template-columns: repeat(12, 1fr); padding: 0 24px 24px; }
+
+    /* Estilo base para todos os 'cards' do dashboard. */
+    .card {
+      background:#121833;             /* Cor de fundo escura */
+      border:1px solid #1d2550;        /* Borda sutil */
+      border-radius:16px;              /* Cantos arredondados */
+      padding:16px;                    /* Espaçamento interno */
+      box-shadow: 0 8px 24px rgba(0,0,0,.25); /* Sombra para dar profundidade */
+    }
+
+    .kpi { display:flex; gap:12px; align-items:baseline; } /* Alinha os números grandes (KPIs) */
+    .kpi h2 { margin:0; font-size:32px; } /* Estilo do número principal do KPI */
+    .muted { color:#9aa4c7; font-size:14px; } /* Classe para textos secundários, com cor mais suave */
+
+    /* As 'badges' (pílulas de status) são usadas para indicar visualmente o estado de um serviço. */
+    .badge { padding:4px 10px; border-radius:999px; font-size:12px; font-weight: 500; }
+    .up { background:#12381f; color:#84f1a7; border:1px solid #1d6b3a; }        /* Verde para 'up' */
+    .degraded { background:#3b2b12; color:#ffd18f; border:1px solid #6b4a1d; }  /* Amarelo para 'degraded' */
+    .down { background:#3a1114; color:#ff9898; border:1px solid #6b1d24; }      /* Vermelho para 'down' */
+
+    a { color:#8ab4ff; text-decoration:none; } /* Estilo padrão para links */
+    footer { padding: 16px 24px; color:#8390b8; font-size: 12px;} /* Rodapé discreto */
+
+    /* Estilos para formulários, para que combinem com o tema escuro. */
+    input, button {
+      padding:8px 10px; border-radius:10px; border:1px solid #1d2550;
+      background:#0e1430; color:#e6e9f2;
+    }
+    button { cursor:pointer; } /* Muda o cursor para uma 'mãozinha' ao passar sobre botões. */
+    label { font-size:12px; color:#9aa4c7; } /* Estilo para as etiquetas dos inputs. */
+  </style>
+
+  <!-- Chart.js é a lib de gráficos; será usada pelo main.js para desenhar o gráfico de linha -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <!-- O <body> contém todo o conteúdo visível da página. Usamos tags semânticas como <header>, <section> e <footer> para organizar. -->
+  <header>
+    <div>
+      <!-- Título do dashboard -->
+      <h1 style="margin:0;font-size:22px;">Dashboard de Monitoramento</h1>
+      <!-- Subtítulo com contexto; só texto estático -->
+      <div class="muted">MVP fullstack (Flask + Chart.js) – atualiza a cada 3s</div>
+    </div>
+    <!-- Assinatura à direita + link para o GitHub (abre em nova aba por target="_blank") -->
+    <div class="muted">Por: Sidney Vieira Junior • <a href="https://github.com/" target="_blank">GitHub</a></div>
+  </header>
+
+  <!-- <section> agrupa o conteúdo principal. A classe 'grid' ativa nosso layout de 12 colunas. -->
+  <section class="grid">
+
+    <!-- CARD KPI: CPU -->
+    <!-- 'grid-column: span 3' faz este card ocupar 3 das 12 colunas da grade. -->
+    <div class="card" style="grid-column: span 3;">
+      <div class="kpi">
+        <!-- O 'id' é um identificador único. O JavaScript usará 'id="cpu"' para encontrar este elemento e atualizar seu valor. -->
+        <h2 id="cpu">0%</h2>
+      </div>
+      <div class="muted">Uso de CPU</div>
+    </div>
+
+    <!-- CARD KPI: Memória -->
+    <!-- Este card também ocupa 3 colunas. 3 + 3 = 6. -->
+    <div class="card" style="grid-column: span 3;">
+      <div class="kpi">
+        <!-- O JS usará 'id="mem"' para atualizar o valor da memória. -->
+        <h2 id="mem">0%</h2>
+      </div>
+      <div class="muted">Uso de Memória</div>
+    </div>
+
+    <!-- CARD: Gráfico de séries temporais (CPU/Memória) -->
+    <!-- Este card ocupa as 6 colunas restantes da primeira linha (3+3+6=12). -->
+    <div class="card" style="grid-column: span 6;">
+      <!-- A tag <canvas> cria uma área de desenho. Chart.js usará o 'id="perfChart"' para desenhar o gráfico aqui. -->
+      <canvas id="perfChart" height="120"></canvas>
+      <div class="muted" style="margin-top:8px;">Séries temporais CPU/Memória</div>
+    </div>
+
+    <!-- CARD: Lista de serviços monitorados -->
+    <!-- Este card ocupa todas as 12 colunas da grade, ficando em uma nova linha. -->
+    <div class="card" style="grid-column: span 12;">
+      <h3 style="margin-top:0;">Serviços</h3>
+      <!-- Este 'div' é um container. O JS irá preenchê-lo dinamicamente com os cards de cada serviço. -->
+      <div id="services" class="muted">Carregando...</div>
+    </div>
+
+    <!-- CARD: Formulário para adicionar serviços HTTP -->
+    <div class="card" style="grid-column: span 12;">
+      <h3 style="margin-top:0;">Adicionar Serviço (HTTP)</h3>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
+        <div style="display:flex; flex-direction:column;">
+          <label for="name">Nome</label>
+          <!-- O JS lerá o valor deste input através do seu 'id' para enviar na requisição POST. -->
+          <input id="name" placeholder="Ex.: Meu Serviço" />
+        </div>
+        <div style="display:flex; flex-direction:column;">
+          <label for="url">URL</label>
+          <input id="url" placeholder="Ex.: https://meuservico.com/health" style="min-width:320px" />
+        </div>
+        <!-- O JS usará 'addEventListener' nestes botões, identificando-os pelos seus IDs. -->
+        <button id="addBtn">Adicionar</button>
+        <button id="refreshBtn">Atualizar Lista</button>
+      </div>
+
+      <!-- dica para o usuário (texto informativo) -->
+      <div class="muted" style="margin-top:8px;">Dica: teste com <code>https://httpstat.us/200</code> (UP) ou <code>https://httpstat.us/503</code> (DOWN).</div>
+    </div>
+  </section>
+
+  <footer>
+    próximos passos (auth, logs, websocket, alerts).
+  </footer>
+
+  <!-- É uma prática recomendada carregar scripts no final do <body>. -->
+  <!-- Isso permite que o navegador renderize toda a página visual primeiro, melhorando a percepção de velocidade para o usuário. -->
+  <script src="/static/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Local Health",
+    "type": "http",
+    "url": "http://127.0.0.1:5000/health"
+  },
+  {
+    "name": "Youtube",
+    "type": "http",
+    "url": "https://www.youtube.com/"
+  },
+  {
+    "name": "Site SVS Soluções",
+    "type": "http",
+    "url": "https://svssolucoes.com.br/"
+  }
+]
